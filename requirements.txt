@@ -1,0 +1,6 @@
+pygame
+pillow
+IPython
+ipykernel
+#jupyterlab
+src/jtlgames
