@@ -1,6 +1,14 @@
 import pygame
 from jtlgames.spritesheet import SpriteSheet
 from pathlib import Path
+import random 
+gatorspeed = 4
+gatorspeed2 = 9
+gatorspeed3 = 6
+gator2x = -150
+gator2y = 300
+gator3x = -150
+gator3y = 300
 
 images = Path(__file__).parent / 'images'
 
@@ -19,6 +27,8 @@ def scale_sprites(sprites, scale):
     return [pygame.transform.scale(sprite, (sprite.get_width() * scale, sprite.get_height() * scale)) for sprite in sprites]
 
 def main():
+    global gator2x
+    global gator2y
     global bgimage
     # Initialize Pygame
     pygame.init()
@@ -49,30 +59,43 @@ def main():
 
     class Gator(pygame.sprite.Sprite):
 
-        def __init__(self):
+        def __init__(self,spawnx):
             super().__init__()
 
 
-            self.rect = pygame.Rect(100,100,75,50)
+            self.rect = pygame.Rect(spawnx,90,175,50)
 
 
         def gator_update(self):
+            global gatorspeed
+            global gator2x
+            global gator2y
+            global gatorspeed2
+            global gator3x
+            global gator3y
+            global gatorspeed3
             print(self.rect)
             print(frog.rect)
             
-            if self.rect.x < frog.rect.x:
-                self.rect.x += 1
-                print('1')
-            if self.rect.x >= frog.rect.x:
-                self.rect.x -= 1
-                print('2')
-            if self.rect.y >= frog.rect.y:
-                self.rect.y -= 1
-                print('3')
-            if self.rect.y < frog.rect.y:
-                self.rect.y += 1
-                print('4')
-          
+            gator2x += gatorspeed2
+            gator3x += gatorspeed3
+            self.rect.x += gatorspeed
+            if self.rect.x > 750:
+                self.rect.x = -50
+                gatorspeed = random.randint(4,10)
+                gatorspeed2 = random.randint(4,10)
+                gatorspeed3 = random.randint(4,10)
+
+            if gator2x > 750:
+                gator2x = -200
+            if gator3x > 750:
+                gator3x = -200
+            
+
+        
+                
+
+            
 
 
     class Frog(pygame.sprite.Sprite):
@@ -114,7 +137,7 @@ def main():
     running = True
     
     frog = Frog()
-    gator = Gator()
+    gator = Gator(0)
 
     
 
@@ -152,6 +175,15 @@ def main():
 
     while running:
         screen.fill((0, 0, 139))  # Clear screen with deep blue
+
+        if frog.rect.x > gator2x and frog.rect.x < gator2x + 100:
+            if frog.rect.y > gator2y and frog.rect.y < gator2y + 20:
+                print("dead")
+
+
+
+
+
 
         
 
@@ -207,7 +239,11 @@ def main():
         screen.blit(frog2x, frog.rect)
 
         composed_alligator = draw_alligator(allig_sprites, allig_index)
-        screen.blit(composed_alligator,  (gator.rect.x-120, gator.rect.y, 10, 10))
+        screen.blit(composed_alligator,  (gator.rect.x, gator.rect.y, 10, 10))
+
+        screen.blit(composed_alligator,  (gator2x, gator2y, 10, 10))
+
+        screen.blit(composed_alligator,  (gator3x, gator3y, 10, 10))
 
         screen.blit(log,  sprite_rect.move(0, -100))
     
