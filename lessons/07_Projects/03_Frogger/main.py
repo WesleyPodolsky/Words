@@ -9,6 +9,7 @@ gator2x = -150
 gator2y = 300
 gator3x = -150
 gator3y = 300
+gameover = False
 
 images = Path(__file__).parent / 'images'
 
@@ -30,6 +31,7 @@ def main():
     global gator2x
     global gator2y
     global bgimage
+    global gameover
     # Initialize Pygame
     pygame.init()
 
@@ -63,7 +65,7 @@ def main():
             super().__init__()
 
 
-            self.rect = pygame.Rect(spawnx,90,175,50)
+            self.rect = pygame.Rect(spawnx,100,125,50)
 
 
         def gator_update(self):
@@ -74,15 +76,14 @@ def main():
             global gator3x
             global gator3y
             global gatorspeed3
-            print(self.rect)
-            print(frog.rect)
+
             
             gator2x += gatorspeed2
             gator3x += gatorspeed3
             self.rect.x += gatorspeed
             if self.rect.x > 750:
-                self.rect.x = -50
-                gatorspeed = random.randint(4,10)
+                self.rect.x = -100
+                gatorspeed = random.randint(6,25)
                 gatorspeed2 = random.randint(4,10)
                 gatorspeed3 = random.randint(4,10)
 
@@ -104,7 +105,7 @@ def main():
             super().__init__()
 
 
-            self.rect = frog_sprites[0].get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+            self.rect = frog_sprites[0].get_rect(center=(screen.get_width() // 2, screen.get_height() // 1.1))
             self.jump = 19
             self.move=0
 
@@ -115,17 +116,17 @@ def main():
         
         def update_frog(self):
             if self.jump < 20 and self.move == 1:
-                self.rect.y -= 6
+                self.rect.y -= 3
                 
             if self.jump < 20 and self.move == 2:
              
-                self.rect.x += 6
+                self.rect.x += 3
             if self.jump < 20 and self.move == 3:
                
-                self.rect.y += 6
+                self.rect.y += 2
             if self.jump < 20 and self.move == 4:
                 
-                self.rect.x -= 6
+                self.rect.x -= 3
 
     
             
@@ -174,11 +175,10 @@ def main():
 
 
     while running:
-        screen.fill((0, 0, 139))  # Clear screen with deep blue
 
-        if frog.rect.x > gator2x and frog.rect.x < gator2x + 100:
-            if frog.rect.y > gator2y and frog.rect.y < gator2y + 20:
-                print("dead")
+        screen.fill((0, 0, 139)) 
+
+       
 
 
 
@@ -239,13 +239,13 @@ def main():
         screen.blit(frog2x, frog.rect)
 
         composed_alligator = draw_alligator(allig_sprites, allig_index)
-        screen.blit(composed_alligator,  (gator.rect.x, gator.rect.y, 10, 10))
+        screen.blit(composed_alligator,  (gator.rect.x - 50, gator.rect.y, 10, 10))
 
         screen.blit(composed_alligator,  (gator2x, gator2y, 10, 10))
 
         screen.blit(composed_alligator,  (gator3x, gator3y, 10, 10))
 
-        screen.blit(log,  sprite_rect.move(0, -100))
+        screen.blit(log,  sprite_rect.move(0, -150))
     
         keys = pygame.key.get_pressed()
         if keys[pygame.K_h]:
@@ -264,8 +264,21 @@ def main():
         pygame.time.Clock().tick(60)
 
         if frog.rect.colliderect(gator.rect):
+            gameover = True
+
+        if frog.rect.x > gator2x and frog.rect.x < gator2x + 100:
+            if frog.rect.y > gator2y - 30 and frog.rect.y < gator2y + 50:
+                gameover = True
+                print("dead")
+        if frog.rect.x > gator3x and frog.rect.x < gator3x + 100:
+            if frog.rect.y > gator3y - 30 and frog.rect.y < gator3y + 50:
+                gameover = True
+                print("dead")
+
+        if gameover == True:
             pygame.quit()
 
+            
     
 
     # Quit Pygame
