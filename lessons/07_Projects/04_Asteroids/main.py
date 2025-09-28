@@ -11,6 +11,7 @@ waverealy = 300
 canshoot = False
 gamespeed = 1
 score = 0
+size = 60
 # Initialize Pygame
 vel = 0
 vely = 0
@@ -145,16 +146,17 @@ class Bullet(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, spawnx,):
+    def __init__(self, spawnx, spawny, size):
         super().__init__()
 
         self.bull = pygame.image.load(images_dir / "demonface.png")
         self.image = self.bull
-        self.rect = pygame.Rect(spawnx,-65,0,0)
-        self.image = pygame.transform.scale(self.image, (60, 60))
+        self.rect = pygame.Rect(spawnx,spawny,0,0)
+        self.image = pygame.transform.scale(self.image, (size, size))
         self.rect = self.image.get_rect(center=self.rect.center)
         self.velx = random.randint(-2,2)
         self.vely = random.randint(-2,2)
+        self.size = size
 
     def update(self):
         global game_over
@@ -173,10 +175,13 @@ class Enemy(pygame.sprite.Sprite):
             #game_over = True
 
     def add_enemy(enemies):
-        enemy = Enemy(spawnx = random.randint(25,575))
+        enemy = Enemy(spawnx = random.randint(25,575), spawny= -65, size = 60)
         enemies.add(enemy)
         return 1
-    
+    def killAstroid(self):
+        self.kill()
+
+
     def explode(self):
         self.kill()
 
@@ -202,6 +207,7 @@ def game_loop():
     global game_over
     global score
     global waverealx
+    global size
     
     button = Button(220,100,60,150,'grey',"New Button",'black',20)
     clock = pygame.time.Clock()
@@ -250,12 +256,38 @@ def game_loop():
 
             bullets.update()
             enemies.update()
+
             gamespeed += 0.01
             # Check for collisions
-            collider = pygame.sprite.groupcollide(bullets, enemies,dokilla=True, dokillb=True)
-            if collider:
-                score += 1
-                print("boom")
+
+
+            for enemy in enemies:
+                for bullet in bullets:
+
+                    collider = pygame.sprite.collide_rect(bullet, enemy)
+                    if collider:
+                        score += 1
+                        size = enemy.size
+                        print("boom")
+                        print(collider)
+                        enemy.killAstroid()
+                        
+                        if enemy.size == 60:
+                            enemy = Enemy(spawnx = enemy.rect.x, spawny = enemy.rect.y, size = size//2)
+                            enemies.add(enemy)
+                            enemy = Enemy(spawnx = enemy.rect.x, spawny = enemy.rect.y, size = size//2)
+                            enemies.add(enemy)
+                            enemy = Enemy(spawnx = enemy.rect.x, spawny = enemy.rect.y, size = size//2)
+                            enemies.add(enemy)
+                        else:
+                            enemy.killAstroid()
+                
+
+                
+
+
+
+
 
             collider2 = pygame.sprite.groupcollide(wave_group, enemies,dokilla=True, dokillb=True)
             if collider2:
