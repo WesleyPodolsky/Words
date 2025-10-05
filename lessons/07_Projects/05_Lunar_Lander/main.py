@@ -2,12 +2,16 @@ import pygame
 from pathlib import Path
 import random
 
-shootAngle = 9
+shootAngle = random.randint(45,300)
 game_over = False
 vel = 0
 vely = 0
 gamespeed = 1
-score = 0
+score = 0.0000000000000000000000000000000000001
+gotScore = False
+highScore = 0.0000000000000000000000000000000000001
+fuel = 180
+displayFuel = ""
 
 
 FPS = 60
@@ -19,7 +23,7 @@ assets = Path(__file__).parent / "images"
 
 # Screen dimensions
 WIDTH, HEIGHT = 600, 450
-font = pygame.font.SysFont(None, 20)
+font = pygame.font.SysFont(None, 40)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("lander")
 
@@ -57,9 +61,20 @@ class Wave(pygame.sprite.Sprite):
         global shootAngle
         global waverealx
         global waverealy
-
+        global gotScore
         global score
+        global highScore
+        global fuel
+        global displayFuel
 
+        if self.rect.y < 100:
+                gotScore = False
+                score = 0+ 0.00000000000000000001
+                if fuel < 180:
+                    fuel += 1
+        if gotScore == True:
+            if fuel < 180:
+                    fuel += 1
 
         if self.rect.y < 310:
             print("falling", random.randint(0,1))
@@ -67,8 +82,18 @@ class Wave(pygame.sprite.Sprite):
         else:
             self.rect.y = 309
             print("on ground")
+            if gotScore == False:
+                gotScore = True
+                score = (10-vely) - abs(shootAngle/9) + 0.00000000000000000001
+                if score > highScore:
+                    highScore = score
 
-            score = 10-vely
+        displayFuel = ""
+        for i in range(round(fuel/3)):
+            displayFuel = displayFuel + "|"
+
+            
+
 
 
         self.wave = pygame.image.load(images_dir / "lander.png")
@@ -85,26 +110,34 @@ class Wave(pygame.sprite.Sprite):
         if vel <= 7:
             if vel >= -7:
                 if keys[pygame.K_LEFT]:
-                    vel -= 0.1
+                    
+                    if fuel >= 0:
+                        fuel -= 0.5
+                        shootAngle+=1
                 if keys[pygame.K_RIGHT]:
-                    vel += 0.1
+                    
+
+                    if fuel >= 0:
+                        fuel -= 0.5
+                        shootAngle-=1
                 if keys[pygame.K_UP]:
-                    vely -=0.3
-                    shootAngle = 0
+                    if self.rect.y > 50:
+                        if fuel >= 0:
+                            vely -=0.3
+                            fuel -= 1.5
+        
                 if keys[pygame.K_DOWN]:
                     vely += 0.1
+                    fuel += 0.25
 
                 
                     
 
-        if self.rect.x < -20:
-            self.rect.x = 557
-        if self.rect.x > 557:
-            self.rect.x = -20
-        if self.rect.y < -5:
-            self.rect.y = 405
-        if self.rect.y > 405:
-            self.rect.y = -5
+        if shootAngle > 180:
+            shootAngle = -180
+        if shootAngle < -180:
+            shootAngle = 180
+        print(shootAngle)
 
 
 
@@ -129,7 +162,8 @@ def game_loop():
     global game_over
     global score
     global vely
-    
+    global displayFuel
+
     clock = pygame.time.Clock()
 
     
@@ -137,7 +171,6 @@ def game_loop():
     # Group for obstacles
  
 
-    enemies = pygame.sprite.Group()
     
     wave = Wave()
     wave_group.add(wave)
@@ -174,19 +207,35 @@ def game_loop():
 
 
 
-            collider2 = pygame.sprite.groupcollide(wave_group, enemies,dokilla=True, dokillb=True)
-            if collider2:
-                game_over = True
+            
         
             # Draw everything
             screen.fill("black")
-            wave_group.draw(screen)
+            
 
             pygame.draw.rect(screen, 'darkgray', (0, 350, 600, 600))
+            pygame.draw.rect(screen, (30,30,30), (0, 0, 600, 100))
 
-            enemies.draw(screen)
-            displayscore = font.render("score: " + str(score), True, "gold")
-            screen.blit(displayscore, (waverealx -22, waverealy+25))
+            wave_group.draw(screen)
+            
+            displayHighScore = font.render("highscore: " + (str(highScore))[0]+ (str(highScore))[1]+ (str(highScore))[2]+ (str(highScore))[3], True, "gold")
+            if score < 0.5 and score > 0:
+                displayscore = font.render("score: 0", True, "grey")
+            elif score < 0:
+                displayscore = font.render("kaboom!", True, "grey")
+            else:
+                displayscore = font.render("score: " + (str(score))[0]+ (str(score))[1]+ (str(score))[2]+ (str(score))[3], True, "grey")
+            screen.blit(displayscore, (120,50))
+
+            if highScore > 0.5:
+                screen.blit(displayHighScore, (300,50))
+            else:
+                displayHighScore = font.render("highscore: 0", True, "grey")
+                screen.blit(displayHighScore, (300,50))
+            displayFuelSurface = font.render("fuel: " + displayFuel, True, "red")
+            screen.blit(displayFuelSurface, (10,10))
+
+
             # Display obstacle count
         
 
