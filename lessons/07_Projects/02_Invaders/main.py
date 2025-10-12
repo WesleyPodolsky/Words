@@ -191,7 +191,7 @@ def game_loop():
             keys = pygame.key.get_pressed()
             if keys[pygame.K_SPACE]:  
                 bullet_count += Wave.add_bullet(bullets)
-                if pygame.time.get_ticks() % 10 == 0:
+                if pygame.time.get_ticks() % 100 == 0:
                     canshoot = True
                     
             if random.randint(0,1000) <= gamespeed:
