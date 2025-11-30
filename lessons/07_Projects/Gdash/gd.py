@@ -46,32 +46,64 @@ obstacle_speed = 5
 # Font
 font = pygame.font.SysFont(None, 36)
 
-class Spike(pygame.sprite.Sprite):
+
+matrixOne = (
+("o","o","o","o","g","g"),
+("o","o","o","o","g","g"),
+("o","o","o","o","o","o"),
+("o","o","o","o","o","o"),
+("o","o","g","o","o","o"),
+("g","s","g","s","g","s"),
+)
+
+
+
+
+class SpikeTexture(pygame.sprite.Sprite):
     def __init__(self, spawnx, spawny):
         super().__init__()
-        self.rect = pygame.Rect(50,50,spawnx,spawny)
+        self.rect = pygame.Rect(spawnx,spawny,50,50 )
 
-        self.image = pygame.Surface((20, 50))
+        self.image = pygame.Surface((50, 50))
         self.image.fill(BLACK)
 
-        self.spikeimg = pygame.image.load(images_dir / "spikehit.png")
+        self.spikeimg = pygame.image.load(images_dir / "spiketexture.png")
         self.image = self.spikeimg
-        self.image = pygame.transform.scale(self.image, (20, 30))
+        self.image = pygame.transform.scale(self.image, (50, 50))
         self.rect = self.image.get_rect(center=self.rect.center)
 
     def update(self):
         self.rect.x -= 5
 
 
+class Spike(pygame.sprite.Sprite):
+    def __init__(self, spawnx, spawny):
+        super().__init__()
+        self.rect = pygame.Rect(spawnx,spawny,10,20)
+
+        self.image = pygame.Surface((20, 50))
+        self.image.fill(BLACK)
+
+        self.spikeimg = pygame.image.load(images_dir / "spikehit.png")
+        self.image = self.spikeimg
+        self.image = pygame.transform.scale(self.image, (10, 20))
+        self.rect = self.image.get_rect(center=self.rect.center)
+
+    def update(self):
+        self.rect.x -= 5
+
+    
+
+
 # Define an obstacle class
 class Obstacle(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, spawnx, spawny):
         super().__init__()
         self.image = pygame.Surface((OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
         self.image.fill(BLACK)
         self.rect = self.image.get_rect()
-        self.rect.x = WIDTH
-        self.rect.y = HEIGHT - OBSTACLE_HEIGHT
+        self.rect.x = spawnx
+        self.rect.y = spawny
 
         self.explosion = pygame.image.load(images_dir / "explosion1.gif")
         self.cactus = pygame.image.load(images_dir / "block.png")
@@ -101,7 +133,6 @@ class Obstacle(pygame.sprite.Sprite):
         global game_over
         game_over = True
         
-
     
 
 # Define a player class
@@ -133,10 +164,6 @@ class Player(pygame.sprite.Sprite):
         self.standing = False
         if self.rect.y < 249:
             self.isjumping = True
-        
-
-
-
     def update(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
@@ -144,16 +171,6 @@ class Player(pygame.sprite.Sprite):
                 self.isjumping = True
                 self.standing = False
                 self.vel = 15
-
-            
-
-    
-
-        # Keep the player on screen
-    
-            
-        
-       
 
         if self.vel > -20 and self.isjumping:
             
@@ -182,30 +199,47 @@ player_group = pygame.sprite.GroupSingle(player)
 
 
 
+
+
 # Add obstacles periodically
-def add_obstacle(obstacles):
-    # random.random() returns a random float between 0 and 1, so a value
-    # of 0.25 means that there is a 25% chance of adding an obstacle. Since
-    # add_obstacle() is called every 100ms, this means that on average, an
-    # obstacle will be added every 400ms.
-    # The combination of the randomness and the time allows for random
-    # obstacles, but not too close together. 
-    if random.random() < 0.4:
-        obstacle = Obstacle()
+def add_obstacle(obstacles,x,y):
+        obstacle = Obstacle(spawnx=x, spawny=y)
         obstacles.add(obstacle)
-        return 1
-    return 0
+
+#//////////#-#//////////#-#//////////#
+spiketextures = pygame.sprite.Group()
+#//////////#-#//////////#-#//////////#
 
 def add_spike(spikes, x, y):
-    # random.random() returns a random float between 0 and 1, so a value
-    # of 0.25 means that there is a 25% chance of adding an obstacle. Since
-    # add_obstacle() is called every 100ms, this means that on average, an
-    # obstacle will be added every 400ms.
-    # The combination of the randomness and the time allows for random
-    # obstacles, but not too close together. 
+
     spike = Spike(spawnx=x, spawny=y)
     spikes.add(spike)
+    add_spiketexture(spiketextures, x= x-20, y = y-20)
 
+def add_spiketexture(spiketextures, x, y):
+
+    spiketexture = SpikeTexture(spawnx=x, spawny=y)
+    spiketextures.add(spiketexture)
+
+
+
+
+def spawnMatrix(obstacles,spikes):
+    global matrixOne
+
+    for y in range(6):
+        for x in range(6):
+            if matrixOne[y][x] == "g":
+                matrixSpawnX = 600 + (50 * x)
+                matrixSpawnY = 50 * y
+                add_obstacle(obstacles,x=matrixSpawnX,y=matrixSpawnY)
+                print("spawned cube at ", matrixSpawnX, ",", matrixSpawnY)
+
+            if matrixOne[y][x] == "s":
+                matrixSpawnX = 620 + (50 * x)
+                matrixSpawnY = (50 * y) +20
+                add_spike(spikes,x=matrixSpawnX,y=matrixSpawnY)
+                print("spawned spike at ", matrixSpawnX, ",", matrixSpawnY)
 
 
 
@@ -224,6 +258,8 @@ def game_loop():
     # Group for obstacles
     obstacles = pygame.sprite.Group()
     spikes = pygame.sprite.Group()
+    
+    spawnMatrix(obstacles,spikes)
 
     button = Button(220,100,60,150,'grey',"New Button",'black',)
 
@@ -238,25 +274,31 @@ def game_loop():
                     pygame.quit()
                     quit()
 
-            
-
+        
             # Update player
             player.update()
 
             # Add obstacles and update
-            if pygame.time.get_ticks() - last_obstacle_time > 500:
-                last_obstacle_time = pygame.time.get_ticks()
-                obstacle_count += add_obstacle(obstacles)
-                
+
+
+#>----------------------------spawning---------------------------------<#
+            
+            
+            
+            #add_obstacle(obstacles,x=200,y=200)
+            
+            #add_spike(spikes, x= 500, y = 200)
 
             
+            
+
+#>--------------------------------------------------------------------<#
+
+
             keys = pygame.key.get_pressed()
-
-            if keys[pygame.K_s]:
-                add_spike(spikes, x= 300, y = 50)
-            
             obstacles.update()
             spikes.update()
+            spiketextures.update()
 
             # Check for collisions
             collider = pygame.sprite.spritecollide(player, obstacles, dokill=False)
@@ -268,23 +310,31 @@ def game_loop():
             for index in obstacles:
                 collider2 = pygame.sprite.collide_rect(player, index)
                 if collider2:
-                    print("-")
+                    #print("-")
                     if index.rect.y < player.rect.y + 20:
-                        print("X")
+                        #print("X")
                         player.kill()
+
+            for index in spikes:
+                collider3 = pygame.sprite.collide_rect(player, index)
+                if collider3:
+                    player.kill()
         
             # Draw everything
             screen.fill("white")
             
             obstacles.draw(screen)
-            spikes.draw(screen)
+            
             player_group.draw(screen)
+            
 
+            #hitbox
+            #for spike in spikes:
+            #    pygame.draw.rect(screen, BLUE, spike)
 
-            for spike in spikes:
-                pygame.draw.rect(screen, BLUE, spike)
-
-
+            
+            spiketextures.draw(screen)
+            spikes.draw(screen)
 
 
             # Display obstacle count

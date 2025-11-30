@@ -11,11 +11,13 @@
 # __# [ DONE ] #___--^
 
 # step four: add scrolling rects that kill you when you touch them
-# __# [ ADDED SPIKES, PRESS "S" ] #___--^
+# __# [ DONE ] #___--^
 
 # step five: add a spike image to the rects
+# __# [ DONE ] #___--^
 
 # step six: every certain amount of seconds, a choose() function is called to spawn a pre-made jump of cubes and spikes
+# __# [ BASIC SPAWNING DONE BUT NEED AUTOMATION AND MORE PRESETS ] #___--^
 
 # step seven: add a score for time and high score
 
