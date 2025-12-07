@@ -13,6 +13,8 @@ i=0
 game_over = False
 passedobj = 0
 hiscore = 0
+tick = 0
+player_dead = False
 # Initialize Pygame
 pygame.init()
 
@@ -47,13 +49,49 @@ obstacle_speed = 5
 font = pygame.font.SysFont(None, 36)
 
 
+matrixFive = (
+("o","o","o","o","o","o","o","o","s","o","o","o"),
+("o","o","o","o","o","o","o","o","g","o","o","o"),
+("o","o","o","o","o","o","o","o","o","o","o","o"),
+("o","o","o","o","o","o","g","o","o","o","o","o"),
+("o","o","o","o","g","o","g","o","o","g","o","o"),
+("g","g","g","s","g","s","g","s","s","g","s","s"),
+)
+
+matrixFour = (
+("o","o","o","o","o","o","o","o","o","o","o","o"),
+("o","o","o","o","o","o","o","o","o","o","o","o"),
+("o","o","o","o","o","o","s","s","o","o","o","o"),
+("o","o","o","o","o","o","g","g","o","o","o","o"),
+("o","o","g","g","o","o","o","o","o","o","g","g"),
+("g","s","g","g","g","g","g","g","g","g","g","g"),
+)
+
+matrixThree = (
+("o","o","o","o","o","o","o","o","o","o","o","o"),
+("o","o","o","o","o","o","o","o","o","o","o","o"),
+("o","o","o","o","o","o","o","o","o","o","o","o"),
+("o","o","o","o","o","o","o","o","o","o","o","o"),
+("o","o","o","o","s","o","g","g","g","o","o","o"),
+("o","s","g","g","g","o","g","g","g","s","s","g"),
+)
+
+matrixTwo = (
+("o","o","o","o","g","g","o","o","o","o","o","g"),
+("o","o","o","o","g","g","o","o","o","o","o","g"),
+("o","o","o","o","o","o","o","o","o","o","o","o"),
+("o","o","o","o","o","o","o","o","o","o","o","o"),
+("o","o","g","o","o","o","o","o","o","g","g","o"),
+("g","s","g","s","g","s","s","g","s","g","g","s"),
+)
+
 matrixOne = (
-("o","o","o","o","g","g"),
-("o","o","o","o","g","g"),
-("o","o","o","o","o","o"),
-("o","o","o","o","o","o"),
-("o","o","g","o","o","o"),
-("g","s","g","s","g","s"),
+("o","o","o","o","o","o","o","o","o","g","o","o"),
+("o","o","o","o","o","o","o","o","o","g","s","s"),
+("o","o","o","o","o","o","o","o","o","o","g","g"),
+("o","o","o","o","o","o","g","g","o","o","o","o"),
+("o","o","o","g","g","o","g","g","o","o","o","o"),
+("g","g","o","g","g","o","g","g","o","o","g","g"),
 )
 
 
@@ -72,8 +110,19 @@ class SpikeTexture(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (50, 50))
         self.rect = self.image.get_rect(center=self.rect.center)
 
+        self.hei = 50
+        self.wid = 50
+
     def update(self):
-        self.rect.x -= 5
+        global player_dead
+        if player_dead == False:
+            self.rect.x -= 5
+
+        if player_dead:
+            if self.hei > 1:
+                self.image = pygame.transform.scale(self.image, (self.wid, self.hei))
+                self.hei -= 1
+                self.wid -= 1
 
 
 class Spike(pygame.sprite.Sprite):
@@ -89,8 +138,17 @@ class Spike(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (10, 20))
         self.rect = self.image.get_rect(center=self.rect.center)
 
+        
+
     def update(self):
-        self.rect.x -= 5
+        global player_dead
+        if player_dead == False:
+            self.rect.x -= 5
+
+        if self.rect.x < -50:
+            self.kill()
+
+       
 
     
 
@@ -112,15 +170,31 @@ class Obstacle(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
         self.rect = self.image.get_rect(center=self.rect.center)
 
+        self.hei = 50
+        self.wid = 50
+
         
 
     def update(self):
-        self.rect.x -= obstacle_speed
+        global player_dead
+        if player_dead == False:
+            self.rect.x -= obstacle_speed
         # Remove the obstacle if it goes off screen
         if self.rect.right < 0:
             self.kill()
             global passedobj
-            passedobj += 1
+
+        if player_dead:
+            if self.hei > 1:
+                self.image = pygame.transform.scale(self.image, (self.wid, self.hei))
+                self.hei -= 1
+                self.wid -= 1
+
+            
+            
+
+        if self.rect.x < -50:
+            self.kill()
             
 
     def explode(self):
@@ -199,6 +273,45 @@ player_group = pygame.sprite.GroupSingle(player)
 
 
 
+class Button():
+    def __init__(self, butx, buty, butwid, buthigh, butcolor, buttext, buttxtcolor, textpadding):
+        self.butx = 0
+        self.buty = 200
+        self.butwid = 40
+        self.buthigh = 600
+        self.butcolor = "black"
+        self.buttext = buttext
+        self.buttxtcolor = "orange"
+        self.textpadding = 220
+
+    def button_draw(self, text, butcolor):
+        pygame.draw.rect(screen, self.butcolor, (self.butx, self.buty, self.buthigh, self.butwid))
+        buttontext = font.render(text, True, butcolor)
+        screen.blit(buttontext, (self.butx + self.textpadding, self.buty+((self.butwid-21.67)/2)))
+
+    def button_clicked(self):
+            if pygame.mouse.get_pos()[0] > self.butx and pygame.mouse.get_pos()[0] <  self.butx +self.buthigh and pygame.mouse.get_pos()[1] >  self.buty and pygame.mouse.get_pos()[1] <  self.buty + self.butwid and pygame.mouse.get_pressed()[0] == True:
+
+                return True
+                
+            else:
+                return False
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Add obstacles periodically
@@ -226,20 +339,37 @@ def add_spiketexture(spiketextures, x, y):
 
 def spawnMatrix(obstacles,spikes):
     global matrixOne
+    global matrixTwo
+    global matrixThree
+
+    chosenMatrix = random.randint(1,5)
+
+
+    if chosenMatrix == 1:
+        chosenMatrix = matrixOne
+    elif chosenMatrix == 2:
+        chosenMatrix = matrixTwo
+    elif chosenMatrix == 3:
+        chosenMatrix = matrixThree
+    elif chosenMatrix == 4:
+        chosenMatrix = matrixFour
+    elif chosenMatrix == 5:
+        chosenMatrix = matrixFive
+
 
     for y in range(6):
-        for x in range(6):
-            if matrixOne[y][x] == "g":
+        for x in range(12):
+            if chosenMatrix[y][x] == "g":
                 matrixSpawnX = 600 + (50 * x)
                 matrixSpawnY = 50 * y
                 add_obstacle(obstacles,x=matrixSpawnX,y=matrixSpawnY)
-                print("spawned cube at ", matrixSpawnX, ",", matrixSpawnY)
+                #print("spawned cube at ", matrixSpawnX, ",", matrixSpawnY)
 
-            if matrixOne[y][x] == "s":
+            if chosenMatrix[y][x] == "s":
                 matrixSpawnX = 620 + (50 * x)
                 matrixSpawnY = (50 * y) +20
                 add_spike(spikes,x=matrixSpawnX,y=matrixSpawnY)
-                print("spawned spike at ", matrixSpawnX, ",", matrixSpawnY)
+                #print("spawned spike at ", matrixSpawnX, ",", matrixSpawnY)
 
 
 
@@ -250,8 +380,17 @@ def game_loop():
     global game_over
     global passedobj
     global hiscore
+    global tick
+    global player_dead
 
+    button = Button(220,100,60,150,'grey',"New Button",'black',100)
     clock = pygame.time.Clock()
+
+    #if button.button_clicked() == True:
+    #    player = Player()
+    #      player_group = pygame.sprite.GroupSingle(player)
+
+    
     
     last_obstacle_time = pygame.time.get_ticks()
 
@@ -259,9 +398,9 @@ def game_loop():
     obstacles = pygame.sprite.Group()
     spikes = pygame.sprite.Group()
     
-    spawnMatrix(obstacles,spikes)
+    
 
-    button = Button(220,100,60,150,'grey',"New Button",'black',)
+    
 
     player = Player()
     player_group.add(player)
@@ -314,14 +453,29 @@ def game_loop():
                     if index.rect.y < player.rect.y + 20:
                         #print("X")
                         player.kill()
+                        player_dead = True
+                        
 
             for index in spikes:
                 collider3 = pygame.sprite.collide_rect(player, index)
                 if collider3:
                     player.kill()
+                    player_dead = True
+
+            if tick % 200 == 0:
+                spawnMatrix(obstacles,spikes)
+    
+
+            tick = tick+1
+
+            if game_over == False:
+                passedobj = round(tick/100)
+
+
+
         
             # Draw everything
-            screen.fill("white")
+            screen.fill("lightblue")
             
             obstacles.draw(screen)
             
@@ -334,7 +488,7 @@ def game_loop():
 
             
             spiketextures.draw(screen)
-            spikes.draw(screen)
+            #spikes.draw(screen)
 
 
             # Display obstacle count
@@ -343,7 +497,13 @@ def game_loop():
             if passedobj > hiscore:
                 hiscore = passedobj
             obstacle_text = font.render(f"highscore: {hiscore}", True, 'gold')
-            screen.blit(obstacle_text, (10, 40))
+
+            if player_dead:
+                button.button_draw(text="You Died!", butcolor="lime")
+            #screen.blit(obstacle_text, (10, 40))
+
+            
+               
 
         
 
@@ -356,7 +516,7 @@ def game_loop():
         
         while game_over == True:
             screen.fill(WHITE)
-            button.button_draw()
+    
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONUP:
                     #print(pygame.mouse.get_pos())
@@ -366,35 +526,10 @@ def game_loop():
             pygame.display.update()
             clock.tick(60)
 
-            if button.button_clicked() == True:
-                obstacles = pygame.sprite.Group()
-                passedobj = 0
-                
-                game_over = False
+            
 
 
 
-class Button():
-    def __init__(self, butx, buty, butwid, buthigh, butcolor, buttext, buttxtcolor):
-        self.butx = -200
-        self.buty = 100
-        self.butwid = 60
-        self.buthigh = 700
-        self.butcolor = "gray"
-        self.buttext = 'you lost! ' \
-        'click to retry'
-        self.buttxtcolor = BLACK
-
-    def button_draw(self):
-        pygame.draw.rect(screen, self.butcolor, (self.butx, self.buty, self.buthigh, self.butwid))
-        buttontext = font.render(self.buttext, True, self.buttxtcolor)
-        screen.blit(buttontext, (self.butx+((self.buthigh-141.89)/2), self.buty+((self.butwid-21.67)/2)))
-
-    def button_clicked(self):
-            if pygame.mouse.get_pos()[0] > self.butx and pygame.mouse.get_pos()[0] <  self.butx +self.buthigh and pygame.mouse.get_pos()[1] >  self.buty and pygame.mouse.get_pos()[1] <  self.buty + self.butwid and pygame.mouse.get_pressed()[0] == True:
-                return True
-            else:
-                return False
                                     
 
         
@@ -426,6 +561,8 @@ class Button():
         #     pygame.display.update()
         #     clock.tick(60)
         # #--------------------------------------------------------#
+        
+
         
 
 

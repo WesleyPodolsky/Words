@@ -544,7 +544,7 @@ def game_loop():
         # Game over screen
         while game_over == True:
             screen.fill("grey")
-            button.button_draw()
+            .button_draw()button
             print('hi')
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONUP:

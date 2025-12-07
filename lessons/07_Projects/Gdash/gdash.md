@@ -17,8 +17,10 @@
 # __# [ DONE ] #___--^
 
 # step six: every certain amount of seconds, a choose() function is called to spawn a pre-made jump of cubes and spikes
-# __# [ BASIC SPAWNING DONE BUT NEED AUTOMATION AND MORE PRESETS ] #___--^
+# __# [ DONE ] #___--^
 
-# step seven: add a score for time and high score
+# step seven: add a score for time
+# __# [ DONE ] #___--^
 
 # step eight: add a game over screen and a restart button
+# __# [ HAVE A YOU DIED BUTTON ] #___--^
