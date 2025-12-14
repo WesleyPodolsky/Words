@@ -23,4 +23,4 @@
 # __# [ DONE ] #___--^
 
 # step eight: add a game over screen and a restart button
-# __# [ HAVE A YOU DIED BUTTON ] #___--^
+# __# [ DONE ] #___--^

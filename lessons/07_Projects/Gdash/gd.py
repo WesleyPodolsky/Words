@@ -15,14 +15,26 @@ passedobj = 0
 hiscore = 0
 tick = 0
 player_dead = False
+player_win = False
 # Initialize Pygame
 pygame.init()
+
+
+
+
+
+
+
 
 images_dir = Path(__file__).parent / "images" if (Path(__file__).parent / "images").exists() else Path(__file__).parent / "assets"
 assets = Path(__file__).parent / "images"
 
 # Screen dimensions
 WIDTH, HEIGHT = 600, 300
+
+
+
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Dino Jump")
 
@@ -47,6 +59,22 @@ obstacle_speed = 5
 
 # Font
 font = pygame.font.SysFont(None, 36)
+
+
+
+background_image = pygame.image.load(images_dir / 'background.jpg').convert()
+background_image = pygame.transform.smoothscale(background_image, (WIDTH, HEIGHT))
+
+
+matrixEnd = (
+("e","e","e","e","e","e","e","e","e","e","e","e"),
+("e","e","e","e","e","e","e","e","e","e","e","e"),
+("e","e","e","e","e","e","e","e","e","e","e","e"),
+("e","e","e","e","e","e","e","e","e","e","e","e"),
+("e","e","e","e","e","e","e","e","e","e","e","e"),
+("e","e","e","e","e","e","e","e","e","e","e","e"),
+)
+
 
 
 matrixFive = (
@@ -94,7 +122,32 @@ matrixOne = (
 ("g","g","o","g","g","o","g","g","o","o","g","g"),
 )
 
+class EndTexture(pygame.sprite.Sprite):
+    def __init__(self, spawnx, spawny):
+        super().__init__()
+        self.rect = pygame.Rect(spawnx,spawny,50,50 )
 
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(BLACK)
+
+        self.endimg = pygame.image.load(images_dir / "endTex.png")
+        self.image = self.endimg
+        self.image = pygame.transform.scale(self.image, (50, 50))
+        self.rect = self.image.get_rect(center=self.rect.center)
+
+        self.hei = 50
+        self.wid = 50
+
+    def update(self):
+        global player_dead
+        if player_dead == False:
+            self.rect.x -= 5
+
+        if player_dead:
+            if self.hei > 1:
+                self.image = pygame.transform.scale(self.image, (self.wid, self.hei))
+                self.hei -= 1
+                self.wid -= 1
 
 
 class SpikeTexture(pygame.sprite.Sprite):
@@ -222,12 +275,16 @@ class Player(pygame.sprite.Sprite):
         self.vel = 0
         self.isjumping = False
         self.standing = False
+        self.hei = 50
+        self.wid = 50
 
         self.dino = pygame.image.load(images_dir / "gd.jpeg")
 
         self.image = self.dino
         self.image = pygame.transform.scale(self.image, (PLAYER_SIZE, PLAYER_SIZE))
         self.rect = self.image.get_rect(center=self.rect.center)
+
+    
 
     def stand(self):
         self.standing = True
@@ -239,6 +296,14 @@ class Player(pygame.sprite.Sprite):
         if self.rect.y < 249:
             self.isjumping = True
     def update(self):
+        if player_win:
+            self.image = pygame.transform.scale(self.image, (self.wid, self.hei))
+            self.hei +=2
+            self.wid -= 0.3
+            self.rect.y -= self.hei/10
+
+
+
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
             if self.isjumping == False:
@@ -282,7 +347,7 @@ class Button():
         self.butcolor = "black"
         self.buttext = buttext
         self.buttxtcolor = "orange"
-        self.textpadding = 220
+        self.textpadding = 150
 
     def button_draw(self, text, butcolor):
         pygame.draw.rect(screen, self.butcolor, (self.butx, self.buty, self.buthigh, self.butwid))
@@ -321,6 +386,7 @@ def add_obstacle(obstacles,x,y):
 
 #//////////#-#//////////#-#//////////#
 spiketextures = pygame.sprite.Group()
+endtextures = pygame.sprite.Group()
 #//////////#-#//////////#-#//////////#
 
 def add_spike(spikes, x, y):
@@ -334,18 +400,23 @@ def add_spiketexture(spiketextures, x, y):
     spiketexture = SpikeTexture(spawnx=x, spawny=y)
     spiketextures.add(spiketexture)
 
+def add_endtexture(endtextures, x, y):
+
+    endtexture = EndTexture(spawnx=x-20, spawny=y-20)
+    endtextures.add(endtexture)
 
 
 
-def spawnMatrix(obstacles,spikes):
+def spawnMatrix(obstacles,spikes,endtextures):
     global matrixOne
     global matrixTwo
     global matrixThree
 
     chosenMatrix = random.randint(1,5)
 
-
-    if chosenMatrix == 1:
+    if passedobj > 20:
+        chosenMatrix = matrixEnd
+    elif chosenMatrix == 1:
         chosenMatrix = matrixOne
     elif chosenMatrix == 2:
         chosenMatrix = matrixTwo
@@ -369,8 +440,12 @@ def spawnMatrix(obstacles,spikes):
                 matrixSpawnX = 620 + (50 * x)
                 matrixSpawnY = (50 * y) +20
                 add_spike(spikes,x=matrixSpawnX,y=matrixSpawnY)
-                #print("spawned spike at ", matrixSpawnX, ",", matrixSpawnY)
 
+            if chosenMatrix[y][x] == "e":
+                matrixSpawnX = 620 + (50 * x)
+                matrixSpawnY = (50 * y) +20
+                add_endtexture(endtextures,x=matrixSpawnX,y=matrixSpawnY)
+                #print("spawned spike at ", matrixSpawnX, ",", matrixSpawnY)
 
 
 
@@ -382,13 +457,12 @@ def game_loop():
     global hiscore
     global tick
     global player_dead
+    global player_win
 
     button = Button(220,100,60,150,'grey',"New Button",'black',100)
     clock = pygame.time.Clock()
 
-    #if button.button_clicked() == True:
-    #    player = Player()
-    #      player_group = pygame.sprite.GroupSingle(player)
+
 
     
     
@@ -400,10 +474,13 @@ def game_loop():
     
     
 
-    
-
     player = Player()
-    player_group.add(player)
+    def createPlayer():
+        player_group.add(player)
+
+    createPlayer()
+    
+    
 
     obstacle_count = 0
     while True:
@@ -415,6 +492,7 @@ def game_loop():
 
         
             # Update player
+            
             player.update()
 
             # Add obstacles and update
@@ -438,6 +516,7 @@ def game_loop():
             obstacles.update()
             spikes.update()
             spiketextures.update()
+            endtextures.update()
 
             # Check for collisions
             collider = pygame.sprite.spritecollide(player, obstacles, dokill=False)
@@ -454,6 +533,10 @@ def game_loop():
                         #print("X")
                         player.kill()
                         player_dead = True
+
+            collider3 = pygame.sprite.spritecollide(player, endtextures, dokill=False)
+            if collider3:
+                player_win = True
                         
 
             for index in spikes:
@@ -463,23 +546,47 @@ def game_loop():
                     player_dead = True
 
             if tick % 200 == 0:
-                spawnMatrix(obstacles,spikes)
+                spawnMatrix(obstacles,spikes,endtextures)
     
 
             tick = tick+1
 
-            if game_over == False:
-                passedobj = round(tick/100)
+            if player_dead == False:
+                passedobj = round(tick/20)
+
+
+
+            if button.button_clicked():
+                if player_dead == True:
+                    for spike in spikes: spike.kill()
+                    for obstacle in obstacles: obstacle.kill()
+                    for spiketexture in spiketextures: spiketexture.kill()
+                    for endtexture in endtextures: endtexture.kill()
+                    createPlayer()
+                    player_dead = False
+                    player.isjumping = False
+                    passedobj = 0
+                    tick = 0
+                
 
 
 
         
             # Draw everything
             screen.fill("lightblue")
+            screen.blit(background_image, (0, 0))
+
+            
             
             obstacles.draw(screen)
             
             player_group.draw(screen)
+
+
+            scoreRectBg = pygame.Rect(220,10,200,20)
+            pygame.draw.rect(screen, BLACK, scoreRectBg)
+            scoreRect = pygame.Rect(220,11,passedobj*2,18)
+            pygame.draw.rect(screen, WHITE, scoreRect)
             
 
             #hitbox
@@ -488,18 +595,19 @@ def game_loop():
 
             
             spiketextures.draw(screen)
+            endtextures.draw(screen)
             #spikes.draw(screen)
 
 
             # Display obstacle count
-            obstacle_text = font.render(f"score: {passedobj}", True, BLACK)
-            screen.blit(obstacle_text, (10, 10))
+            obstacle_text = font.render(f" {passedobj} %", True, WHITE)
+            screen.blit(obstacle_text, (150, 10))
             if passedobj > hiscore:
                 hiscore = passedobj
             obstacle_text = font.render(f"highscore: {hiscore}", True, 'gold')
 
             if player_dead:
-                button.button_draw(text="You Died!", butcolor="lime")
+                button.button_draw(text="You Died! Click to Retry", butcolor="lime")
             #screen.blit(obstacle_text, (10, 40))
 
             
