@@ -19,7 +19,7 @@ player_win = False
 # Initialize Pygame
 pygame.init()
 
-
+skin = 1
 
 
 
@@ -278,7 +278,13 @@ class Player(pygame.sprite.Sprite):
         self.hei = 50
         self.wid = 50
 
-        self.dino = pygame.image.load(images_dir / "gd.jpeg")
+        if skin == 1:
+            self.dino = pygame.image.load(images_dir / "gd1.jpeg")
+        if skin == 2:
+            self.dino = pygame.image.load(images_dir / "gd2.jpeg")
+        if skin == 3:
+            self.dino = pygame.image.load(images_dir / "gd3.jpeg") 
+
 
         self.image = self.dino
         self.image = pygame.transform.scale(self.image, (PLAYER_SIZE, PLAYER_SIZE))
@@ -296,6 +302,7 @@ class Player(pygame.sprite.Sprite):
         if self.rect.y < 249:
             self.isjumping = True
     def update(self):
+        global skin
         if player_win:
             self.image = pygame.transform.scale(self.image, (self.wid, self.hei))
             self.hei +=2
@@ -310,6 +317,8 @@ class Player(pygame.sprite.Sprite):
                 self.isjumping = True
                 self.standing = False
                 self.vel = 15
+
+
 
         if self.vel > -20 and self.isjumping:
             
@@ -414,7 +423,7 @@ def spawnMatrix(obstacles,spikes,endtextures):
 
     chosenMatrix = random.randint(1,5)
 
-    if passedobj > 20:
+    if passedobj > 87:
         chosenMatrix = matrixEnd
     elif chosenMatrix == 1:
         chosenMatrix = matrixOne
